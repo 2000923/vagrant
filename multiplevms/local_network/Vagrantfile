@@ -4,9 +4,9 @@
 VAGRANTFILE_API_VERSION = "2"
 
 cluster = {
-  "node01" => { :ip => "192.168.56.81", :cpus => 1, :mem => 512, :os => "ubuntu/bionic64" },
-  "node02" => { :ip => "192.168.56.82", :cpus => 1, :mem => 512, :os => "ubuntu/focal64" },
-  "node03" => { :ip => "192.168.56.83", :cpus => 1, :mem => 512, :os => "ubuntu/jammy64" },
+  #"node01" => { :ip => "192.168.56.81", :cpus => 1, :mem => 512, :os => "ubuntu/bionic64" },
+  #"node02" => { :ip => "192.168.56.82", :cpus => 1, :mem => 512, :os => "ubuntu/focal64" },
+  #"node03" => { :ip => "192.168.56.83", :cpus => 1, :mem => 512, :os => "ubuntu/jammy64" },
   "node04" => { :ip => "192.168.56.84", :cpus => 1, :mem => 512, :os => "generic/rhel7" },
   "node05" => { :ip => "192.168.56.85", :cpus => 1, :mem => 512, :os => "generic/rhel8" },
   "node06" => { :ip => "192.168.56.86", :cpus => 1, :mem => 512, :os => "generic/rhel9" },
@@ -39,9 +39,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "ansible" do |ansible|
   ansible.playbook = "/home/eflores/git.personal/ansible/create-user-vagrant.yml"
   ansible.host_vars = {
-     "node01" => {"remove_ip" => "192.168.56.81"},
-     "node02" => {"remove_ip" => "192.168.56.82"},
-     "node03" => {"remove_ip" => "192.168.56.83"},
+     #"node01" => {"remove_ip" => "192.168.56.81"},
+     #"node02" => {"remove_ip" => "192.168.56.82"},
+     #"node03" => {"remove_ip" => "192.168.56.83"},
      "node04" => {"remove_ip" => "192.168.56.84"},
      "node05" => {"remove_ip" => "192.168.56.85"},
      "node06" => {"remove_ip" => "192.168.56.86"},
@@ -57,5 +57,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
      "node14" => {"remove_ip" => "192.168.56.94"},
      "node15" => {"remove_ip" => "192.168.56.95"}
   }
+  ansible.vault_password_file = "/etc/vault.txt"
   end
 end
