@@ -17,6 +17,7 @@ cluster = {
   "node11" => { :ip => "192.168.56.91", :cpus => 1, :mem => 512, :os => "generic/debian10" },
   "node12" => { :ip => "192.168.56.92", :cpus => 1, :mem => 512, :os => "generic/debian11" },
   "node13" => { :ip => "192.168.56.93", :cpus => 1, :mem => 512, :os => "generic/debian12" },
+  # The vagrant img is download from https://www.suse.com/download/sles/
   "node14" => { :ip => "192.168.56.94", :cpus => 1, :mem => 1024, :os => "personal/SLES12-SP5" },
   "node15" => { :ip => "192.168.56.95", :cpus => 1, :mem => 1024, :os => "personal/SLES15-SP3" }
 }
@@ -36,6 +37,66 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end # end config
 
   end # end cluster
+
+  # config groups
+  # you install the plugin for Vagrant
+  # vagrant plugin install vagrant-group
+  config.group.groups = {
+    "ubuntu" => [
+      "node01",
+      "node02",
+      "node03"
+    ],
+    "redhat" => [
+      "node04",
+      "node05",
+      "node06"
+    ],
+    "centoS" => [
+      "node07",
+      "node08"
+    ],
+    "rocky" => [
+      "node09",
+      "node10"
+    ],
+    "debian" => [
+      "node11",
+      "node12",
+      "node13"
+    ],
+    "sles" => [
+      "node14",
+      "node15"
+    ]
+  }
+
+  # configure the ansible.cfg in you pc o laptop, in my case the configuration is:
+  # cat ~/data/ansible.cfg 
+  # <> omit the signs
+  # %%%%%%%%%%% init configuration %%%%%%%%%%%%%
+  # [defaults]
+  # host_key_checking = false
+  # vault_password_file = /etc/vault.txt
+  # become_password_file = /etc/user.txt
+  # remote_user = <your_user>
+  # private_key_file = /home/<your_user>/.ssh/id_rsa
+  # roles_path = /home/<your_user>/ansible
+  # inventory = inventory
+  # callbacks_enabled = timer, profile_tasks, profile_roles
+  # pipelining = True
+  # timeout=30
+  #
+  # [privilege_escalation]
+  # become = true
+  # %%%%%%%%%%% end configuration %%%%%%%%%%%%%
+  # you wolud configure the parameter ansible value for personalice the ansible.cfg
+  # in my case, I use fish configuration from crazydog(https://github.com/craftzdog/dotfiles-public)
+  # and define in ~/.config/fish/config-linux the next value
+  # set -x ANSIBLE_CONFIG ~/data/ansible.cfg
+
+
+  #
   config.vm.provision "ansible" do |ansible|
   ansible.playbook = "/home/eflores/git.personal/ansible/create-user-vagrant.yml"
   ansible.host_vars = {
