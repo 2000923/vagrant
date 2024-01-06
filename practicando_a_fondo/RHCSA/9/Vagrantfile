@@ -1,0 +1,78 @@
+datadisk1 = 'datadisk1.vdi'
+datadisk2 = 'datadisk2.vdi'
+datadisk3 = 'datadisk3.vdi'
+datadisk4 = 'datadisk4.vdi'
+Vagrant.configure("2") do |config|
+
+config.vm.provision "shell", inline: <<-SHELL
+  echo "192.168.56.50   rhel9master.labrhel.com       rhel9master" >> /etc/hosts
+  echo "192.168.56.60   rhel9cliente1.labrhel.com     rhel9cliente1" >> /etc/hosts
+  echo "192.168.56.70   rhel9cliente2.labrhel.com     rhel9cliente2" >> /etc/hosts
+  echo "nameserver 192.168.56.50" >> /etc/resolv.conf
+SHELL
+
+      config.vm.define "rhel9master" do |rhel9master|
+          rhel9master.vm.box = "generic/rhel9"
+          rhel9master.vm.hostname = "rhel9master.labrhel.com"
+          rhel9master.vm.network "private_network", ip: "192.168.56.50"
+          rhel9master.vm.disk :dvd, name: "installer", file: "/mnt/iso/rhel-9.3-x86_64-dvd.iso"
+          rhel9master.vm.provider "virtualbox" do |vb|
+          vb.memory = "4096"
+          vb.cpus = "2"
+          vb.linked_clone = true
+          vb.name = "rhel9master"
+        end
+        #rhel9master.vm.synced_folder "/mnt/iso/", "/mnt"
+      end
+
+      config.vm.define "rhel9cliente1" do |rhel9cliente1|
+          rhel9cliente1.vm.box = "generic/rhel9"
+          rhel9cliente1.vm.hostname = "rhel9cliente1.labrhel.com"
+          rhel9cliente1.vm.network "private_network", ip: "192.168.56.60"
+          rhel9cliente1.vm.network "private_network", type: "dhcp", name: "vboxnet1"
+          rhel9cliente1.vm.provider "virtualbox" do |vb|
+            vb.memory = "2048"
+            vb.cpus = "2"
+            vb.linked_clone = true
+            vb.name = "rhel9cliente1"
+            unless File.exist?(datadisk1)
+              vb.customize ['createhd', '--filename', datadisk1, '--size', 50 * 1024]
+            end
+            vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', datadisk1]
+            unless File.exist?(datadisk2)
+                vb.customize ['createhd', '--filename', datadisk2, '--size', 50 * 1024]
+            end
+            vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', datadisk2]
+        end
+      end
+
+      config.vm.define "rhel9cliente2" do |rhel9cliente2|
+          rhel9cliente2.vm.box = "generic/rhel9"
+          rhel9cliente2.vm.hostname = "rhel9cliente2.labrhel.com"
+          rhel9cliente2.vm.network "private_network", ip: "192.168.56.70"
+          rhel9cliente2.vm.network "private_network", type: "dhcp", name: "vboxnet1"
+          rhel9cliente2.vm.provider "virtualbox" do |vb|
+            vb.memory = "2048"
+            vb.cpus = "2"
+            vb.linked_clone = true
+            vb.name = "rhel9cliente2"
+            unless File.exist?(datadisk3)
+              vb.customize ['createhd', '--filename', datadisk3, '--size', 50 * 1024]
+            end
+            vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', datadisk3]
+            unless File.exist?(datadisk4)
+                vb.customize ['createhd', '--filename', datadisk4, '--size', 50 * 1024]
+            end
+            vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', datadisk4]
+        end
+      end
+
+     config.vm.provision "ansible" do |ansible|
+       ansible.playbook = "/home/eflores/git.personal/ansible/ansible_deploy_vagrant/create-user-vagrant.yml"
+       ansible.host_vars = {
+         "rhel9master" => {"remove_ip" => "192.168.56.50", "install_pkg"=>"true"},
+         "rhel9cliente1" => {"remove_ip" => "192.168.56.60", "install_pkg"=>"true"},
+         "rhel9cliente2" => {"remove_ip" => "192.168.56.70", "install_pkg"=>"true"}
+       }
+     end
+end
